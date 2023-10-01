@@ -1,4 +1,5 @@
-#Comentario
+
+#Versión Nueva =)
 #snake+ premium enterprise
 
 #region Librerias
@@ -12,12 +13,9 @@ import time
 #region Manzana
 
 class Objeto(ABC): #Abstract no usado aun
-    puntuacion = 0
-    posicionX = 0
-    posicionY = 0
-    def _init_(self, aspecto, posicionX, posicionY, puntuacion):
+    def __init__(self, aspecto, posicionX, posicionY, puntuacionADar):
         self.aspecto = aspecto
-        self.puntuacion = puntuacion
+        self.puntuacionADar = puntuacionADar
         self.posicionX = posicionX
         self.posicionY = posicionY
 
@@ -35,28 +33,28 @@ class Objeto(ABC): #Abstract no usado aun
     #Cuando Snake toca al objeto es llamada
     def IsEaten(self, bg, puntuacionTotal):
         self.Respawn(bg)
-        return puntuacionTotal + self.puntuacion
+        return puntuacionTotal + self.puntuacionADar
 
 class ObjetoBueno(Objeto):
-    def _init_(self, aspecto,posicionX, posicionY, puntuacion = 5):
-        super()._init_(aspecto, posicionX, posicionY, puntuacion)
+    def __init__(self, aspecto,posicionX, posicionY, puntuacionADar = 5):
+        super().__init__(aspecto, posicionX, posicionY, puntuacionADar)
 
 class ObjetoMalo(Objeto):
-    def _init_(self, aspecto, posicionX, posicionY, puntuacion = -5):
-        super()._init_(aspecto, posicionX, posicionY, puntuacion)
+    def __init__(self, aspecto, posicionX, posicionY, puntuacionADar = -5):
+        super().__init__(aspecto, posicionX, posicionY, puntuacionADar)
 #endregion
 
 #region Snake
 class Snake:
     lastPositions = []
-    def _init_(self, posicionX, posicionY, aspectoCabeza='🔶', aspectoCola='⬛', longitud=3, vidas = 3, puntuacionTotal = 0):
+    def __init__(self, posicionX, posicionY, aspectoCabeza='🔶', aspectoCola='⬛', longitud=3, vidas = 3):
         self.posicionX = posicionX
         self.posicionY = posicionY
         self.aspectoCabeza = aspectoCabeza
         self.aspectoCola = aspectoCola
         self.longitud = longitud
         self.__vidas = vidas
-        self.puntuacionTotal = puntuacionTotal
+        self.lastDirection = 0
 
     @property
     def GetVidas(self):
@@ -71,7 +69,7 @@ class Snake:
 #region Background
 class Background:
     mtx = []
-    def _init_(self, width, height):
+    def __init__(self, width, height):
         self.width = width
         self.height = height
         self.PrintBackground()
@@ -96,11 +94,12 @@ class Background:
 #region Game
 class Game:
 
-    def _init_(self, bg, snake, goodItem, badItem):
+    def __init__(self, bg, snake, goodItem, badItem, puntuacionTotal = 0):
         self.bg = bg
         self.snake = snake
         self.goodItem = goodItem
         self.badItem = badItem
+        self.puntuacionTotal = puntuacionTotal
 
     #El unico personaje que se mueve es el Snake, aqui solo accederá cuando esta colisione con algo
     #En función haya colisionado con qué, irá hacia un sitio u otro
@@ -108,15 +107,17 @@ class Game:
             colorToCheck = self.bg.mtx[self.snake.posicionX][self.snake.posicionY]
             if colorToCheck != '⬜':
                 if colorToCheck == '⬛':
-                    pass
+                    self.snake.SetVidas = self.snake.GetVidas - 1
                 elif colorToCheck == '🌞':
-                    a = self.goodItem.IsEaten(self.bg, 0)
+                    self.puntuacionTotal = self.goodItem.IsEaten(self.bg, self.puntuacionTotal)
+                    self.snake.SetVidas = self.snake.GetVidas + 1
                 elif colorToCheck == '🥦':
-                    a = self.badItem.IsEaten(self.bg, 0)
+                    self.puntuacionTotal = self.badItem.IsEaten(self.bg, self.puntuacionTotal)
+                    self.snake.SetVidas = self.snake.GetVidas - 1
 
     #Se llama antes de el juego para inicializar/reinicializar variables
     def StartGame(self):  
-        for i in range(4):
+        for i in range(6):
             self.snake.lastPositions.append([4, 14 - i])
 
         self.bg.StartBackground()
@@ -140,30 +141,36 @@ class Game:
                 self.bg.StartBackground()
                 self.bg.mtx[self.goodItem.posicionX][self.goodItem.posicionY] = self.goodItem.aspecto
                 self.bg.mtx[self.badItem.posicionX][self.badItem.posicionY] = self.badItem.aspecto
+                
+                #Cola
+                self.snake.lastPositions.insert(0, [self.snake.posicionX, self.snake.posicionY])
+                
+                while len(self.snake.lastPositions) >= self.snake.GetVidas:
+                    self.snake.lastPositions = self.snake.lastPositions[:-1]
 
-
-                #lastMoveX = snake.posicionX
-                #lastMoveY = snake.posicionY
+                for i in self.snake.lastPositions:
+                    self.bg.mtx[i[0]][i[1]] = self.snake.aspectoCola
 
                 #Movement
-                if keyboard.is_pressed('d'):
+                #LastDirection Tiene que no permitir en la direccion contraria a la que se ha avanzado
+                #Ej: si va hacia arriba, que no deje ir hacia abajo...
+                if keyboard.is_pressed('d') and self.snake.lastDirection != 1:
                     if self.snake.posicionY + 1 < self.bg.width:
                         self.snake.posicionY += 1
-                elif keyboard.is_pressed('w'):
+                        self.snake.lastDirection = 3
+                elif keyboard.is_pressed('w') and self.snake.lastDirection != 2:
                     if self.snake.posicionX > 0:
                         self.snake.posicionX -= 1
-                elif keyboard.is_pressed('a'):
+                        self.snake.lastDirection = 4
+                elif keyboard.is_pressed('a') and self.snake.lastDirection != 3:
                     if self.snake.posicionY > 0:
                         self.snake.posicionY -= 1
-                elif keyboard.is_pressed('s'):
+                        self.snake.lastDirection = 1
+                elif keyboard.is_pressed('s') and self.snake.lastDirection != 4:
                     if self.snake.posicionX + 1 < self.bg.height:
                         self.snake.posicionX += 1
-
-                #Cola
-                #for i in snake.lastPositions:
-                #    auxX = i[0]
-                #    auxY = i[1]
-
+                        self.snake.lastDirection = 2
+                    
                 self.CheckColisions()
 
                 self.bg.mtx[self.snake.posicionX][self.snake.posicionY] = self.snake.aspectoCabeza            
@@ -171,8 +178,8 @@ class Game:
                     self.bg.mtx[i[0]][i[1]] = self.snake.aspectoCola
 
                 self.bg.PrintBackground()
-                print('Puntuación: 0')
-                print('Vidas: 4')
+                print('Puntuación:', self.puntuacionTotal)
+                print('Vidas:', self.snake.GetVidas)
 
                 time.sleep(0.2)
                 
