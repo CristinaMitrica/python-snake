@@ -4,6 +4,7 @@
 
 #region Librerias
 from abc import ABC, abstractmethod
+import datetime
 import random
 import keyboard
 import os
@@ -200,7 +201,19 @@ class Classification:
                 print(f.read())
         except FileNotFoundError:
             print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
+
+    def add_user_classification(self, name, punctuation):
+        date_time = datetime.datetime.now()
+        date_time_formated = date_time.strftime('%Y-%m-%d %H:%M:%S')
         
+        user_entry_classification = f'fecha: {date_time_formated}: nombre: {name} - puntuación: {punctuation}\n'
+        try:
+            with open('.\classification.txt', 'a') as f:
+                f.write(user_entry_classification)
+                print(f'Entrada agregada: {user_entry_classification}')
+        except FileNotFoundError:
+            print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
+       
 class Menu: 
     def __init__(self):
         pass
