@@ -190,7 +190,47 @@ class Game:
                 time.sleep(0.2)
 #endregion
 
-g = Game(Background(20, 10), Snake(4, 15), ObjetoBueno('🌞', random.randint(0, 9), random.randint(0, 19)), ObjetoMalo('🥦', random.randint(0, 9), random.randint(0, 19)))
+class Classification:
+    def __init__(self):
+        pass
 
-g.StartGame()
-g.onGame()
+    def print_classification(self):
+        try:
+            with open('.\classification.txt', 'r') as f:
+                print(f.read())
+        except FileNotFoundError:
+            print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
+        
+class Menu: 
+    def __init__(self):
+        pass
+
+    def print_menu(self):
+        print('\nMenú:')
+        print('1. Jugar partida')
+        print('2. Ver clasificación')
+        print('3. Salir')
+    
+    def init_menu(self):
+        while True:
+            self.print_menu()
+            opcion = input('Seleccione una operación (1/2/3): ')
+
+            if opcion == '1':
+                g = Game(Background(20, 10), Snake(4, 15), ObjetoBueno('🌞', random.randint(0, 9), random.randint(0, 19)), ObjetoMalo('🥦', random.randint(0, 9), random.randint(0, 19)))
+                g.StartGame()
+                g.onGame()
+                pass
+
+            elif opcion == '2':
+                classification = Classification()
+                classification.print_classification()
+
+            elif opcion == '3':
+                break
+
+            else:
+                input('Opción no existe, introduce una opción correcta: ')
+
+menu = Menu()
+menu.init_menu()
