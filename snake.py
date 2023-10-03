@@ -181,7 +181,14 @@ class Game:
                 self.bg.PrintBackground()
                 print('Puntuación:', self.puntuacionTotal)
                 print('Vidas:', self.snake.GetVidas)
-
+                
+                if self.snake.GetVidas <= 0:
+                    print('Game Over')
+                    user_name = input('Introduce tu nombre')
+                    classification = Classification()
+                    classification.add_user_classification(user_name, self.puntuacionTotal)
+                    break
+                
                 time.sleep(0.2)
                 
             if keyboard.is_pressed('d') or keyboard.is_pressed('w') or keyboard.is_pressed('a') or keyboard.is_pressed('s'):
@@ -233,8 +240,6 @@ class Menu:
                 g = Game(Background(20, 10), Snake(4, 15), ObjetoBueno('🌞', random.randint(0, 9), random.randint(0, 19)), ObjetoMalo('🥦', random.randint(0, 9), random.randint(0, 19)))
                 g.StartGame()
                 g.onGame()
-                pass
-
             elif opcion == '2':
                 classification = Classification()
                 classification.print_classification()
