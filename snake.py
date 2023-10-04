@@ -199,27 +199,45 @@ class Game:
 #endregion
 
 class Classification:
-    def __init__(self):
-        pass
-
-    def print_classification(self):
+    def get_classification_from_txt(self):
+        classification = ''
         try:
             with open('.\classification.txt', 'r') as f:
-                print(f.read())
+                classification = f.read()
         except FileNotFoundError:
-            print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
+            print('No se encuentra el archivo "classification.txt" en la ubicación actual.')   
+        finally:
+            f.close()
+        return classification
+    
+    def print_classification(self):   
+        print(self.get_classification_from_txt())
+
+    def map_classification(self):
+        readed_classification = self.get_classification_from_txt()
+        rows_txt = readed_classification.split("\n")
+        rows_txt.pop()
+        map_classification = list(
+            map(lambda row: {key: value for key, value in (item.split(': ') for item in row.split(', '))},rows_txt))
+        return map_classification
+
+    def get_higher_punctuation(self):
+        map_classification = self.map_classification()
+        higher_punctuation = list(filter(lambda x: int(x['puntuación']) >= 10, map_classification))
+        print(higher_punctuation)
 
     def add_user_classification(self, name, punctuation):
         date_time = datetime.datetime.now()
         date_time_formated = date_time.strftime('%Y-%m-%d %H:%M:%S')
-        
-        user_entry_classification = f'fecha: {date_time_formated}: nombre: {name} - puntuación: {punctuation}\n'
+        user_entry_classification = f'fecha: {date_time_formated}, nombre: {name}, puntuación: {punctuation}\n'
         try:
             with open('.\classification.txt', 'a') as f:
                 f.write(user_entry_classification)
                 print(f'Entrada agregada: {user_entry_classification}')
         except FileNotFoundError:
             print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
+        finally:
+            f.close()
        
 class Menu: 
     def __init__(self):
@@ -229,12 +247,14 @@ class Menu:
         print('\nMenú:')
         print('1. Jugar partida')
         print('2. Ver clasificación')
-        print('3. Salir')
+        print('3. Mostrar jugadores puntuación superior a 50')
+        print('4. Mostrar media puntos todos los jugadores')
+        print('5. Salir')
     
     def init_menu(self):
         while True:
             self.print_menu()
-            opcion = input('Seleccione una operación (1/2/3): ')
+            opcion = input('Seleccione una operación (1/2/3/4/5): ')
 
             if opcion == '1':
                 g = Game(Background(20, 10), Snake(4, 15), ObjetoBueno('🌞', random.randint(0, 9), random.randint(0, 19)), ObjetoMalo('🥦', random.randint(0, 9), random.randint(0, 19)))
@@ -245,6 +265,13 @@ class Menu:
                 classification.print_classification()
 
             elif opcion == '3':
+                classification = Classification()
+                classification.get_higher_punctuation()
+
+            elif opcion == '4':
+                break
+
+            elif opcion == '5':
                 break
 
             else:

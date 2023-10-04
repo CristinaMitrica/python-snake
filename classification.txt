@@ -1,1 +1,2 @@
-fecha: 2023-10-03 22:48:27: nombre:  Cris - puntuación: -5
+fecha: 2023-10-03 22:48:27, nombre:  Cris, puntuación: -5
+fecha: 2023-10-04 20:39:30, nombre:  Pepe, puntuación: 15
