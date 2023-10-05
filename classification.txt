@@ -1,2 +1,4 @@
 fecha: 2023-10-03 22:48:27, nombre:  Cris, puntuación: -5
 fecha: 2023-10-04 20:39:30, nombre:  Pepe, puntuación: 15
+fecha: 2023-10-05 20:24:53, nombre:  Cristina, puntuación: 40
+fecha: 2023-10-05 20:26:09, nombre:  Cristina, puntuación: 30

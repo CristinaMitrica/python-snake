@@ -5,6 +5,7 @@
 #region Librerias
 from abc import ABC, abstractmethod
 import datetime
+from functools import reduce
 import random
 import keyboard
 import os
@@ -221,10 +222,23 @@ class Classification:
             map(lambda row: {key: value for key, value in (item.split(': ') for item in row.split(', '))},rows_txt))
         return map_classification
 
-    def get_higher_punctuation(self):
+    def get_higher_punctuations(self):
         map_classification = self.map_classification()
-        higher_punctuation = list(filter(lambda x: int(x['puntuación']) >= 10, map_classification))
-        print(higher_punctuation)
+        higher_punctuations = list(filter(lambda x: int(x['puntuación']) >= 30, map_classification))
+        print(f'Puntuación más alta de 30: {higher_punctuations}')
+
+    def calculate_mean_punctuations(self):
+        map_classification = self.map_classification()
+        sum_punctuations = reduce(lambda x, y: x + int(y['puntuación']), map_classification, 0)
+        length_punctuations = len(map_classification)
+        mean_punctuations = int(sum_punctuations) / int(length_punctuations)
+        print(f'Media de las puntuaciones: {mean_punctuations:.2f}')
+
+    def get_users(self):
+        map_classification = self.map_classification()
+        users = list(map(lambda x: x['nombre'], map_classification))
+        unique_users_names = set(users)
+        print(f'Lista de jugadores: {unique_users_names}')
 
     def add_user_classification(self, name, punctuation):
         date_time = datetime.datetime.now()
@@ -247,31 +261,34 @@ class Menu:
         print('\nMenú:')
         print('1. Jugar partida')
         print('2. Ver clasificación')
-        print('3. Mostrar jugadores puntuación superior a 50')
+        print('3. Mostrar jugadores puntuación superior a 30')
         print('4. Mostrar media puntos todos los jugadores')
-        print('5. Salir')
+        print('5. Mostrar lista jugadores')
+        print('6. Salir')
     
     def init_menu(self):
         while True:
             self.print_menu()
-            opcion = input('Seleccione una operación (1/2/3/4/5): ')
+            opcion = input('Seleccione una operación (1/2/3/4/5/6): ')
+            classification = Classification()
 
             if opcion == '1':
                 g = Game(Background(20, 10), Snake(4, 15), ObjetoBueno('🌞', random.randint(0, 9), random.randint(0, 19)), ObjetoMalo('🥦', random.randint(0, 9), random.randint(0, 19)))
                 g.StartGame()
                 g.onGame()
             elif opcion == '2':
-                classification = Classification()
                 classification.print_classification()
 
             elif opcion == '3':
-                classification = Classification()
-                classification.get_higher_punctuation()
+                classification.get_higher_punctuations()
 
             elif opcion == '4':
-                break
+                classification.calculate_mean_punctuations()
 
             elif opcion == '5':
+                classification.get_users()
+
+            elif opcion == '6':
                 break
 
             else:
