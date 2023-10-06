@@ -233,6 +233,20 @@ class Game:
 
 #region OffGame
 class Classification:
+    
+    def addUserClassification(self, name, punctuation):
+        dateTime = datetime.datetime.now()
+        dateTimeFormated = dateTime.strftime('%Y-%m-%d %H:%M:%S')
+        userEntryClassification = f'fecha: {dateTimeFormated}, nombre: {name}, puntuacion: {punctuation}\n'
+        try:
+            f = open('.\classification.txt', 'a')
+            f.write(userEntryClassification)
+            print(f'Entrada agregada: {userEntryClassification}')
+        except FileNotFoundError:
+            print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
+        finally:
+            f.close()
+
     def getClassificationFromTxt(self):
         classification = ''
         try:
@@ -278,20 +292,7 @@ class Classification:
         print('Lista de jugadores: ',)
         for i in uniqueUsernames:
             print(i)
-
-    def addUserClassification(self, name, punctuation):
-        dateTime = datetime.datetime.now()
-        dateTimeFormated = dateTime.strftime('%Y-%m-%d %H:%M:%S')
-        userEntryClassification = f'fecha: {dateTimeFormated}, nombre: {name}, puntuacion: {punctuation}\n'
-        try:
-            with open('.\classification.txt', 'a') as f:
-                f.write(userEntryClassification)
-                print(f'Entrada agregada: {userEntryClassification}')
-        except FileNotFoundError:
-            print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
-        finally:
-            f.close()
-       
+  
 class Menu: 
     def __init__(self):
         os.system('cls' if os.name == 'nt' else "printf '\033c'")

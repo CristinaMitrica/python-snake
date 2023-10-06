@@ -6,4 +6,7 @@ fecha: 2023-10-06 12:01:22, nombre: Adrian, puntuacion: 55
 fecha: 2023-10-06 13:18:49, nombre: test, puntuacion: 25
 fecha: 2023-10-06 13:37:57, nombre: Adrian, puntuacion: 35
 fecha: 2023-10-06 19:17:13, nombre: man, puntuacion: 30
-fecha: 2023-10-06 19:38:00, nombre: Criss, puntuacion: 60
+fecha: 2023-10-06 19:38:00, nombre: Cristina, puntuacion: 60
+fecha: 2023-10-06 19:41:40, nombre: test, puntuacion: -5
+fecha: 2023-10-06 19:41:56, nombre: Adri, puntuacion: 0
+fecha: 2023-10-06 19:45:58, nombre: Test pre entrega =), puntuacion: 55
