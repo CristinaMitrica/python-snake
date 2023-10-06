@@ -15,57 +15,66 @@ import time
 #region Manzana
 
 class Objeto(ABC): #Abstract no usado aun
-    def __init__(self, aspecto, posicionX, posicionY, puntuacionADar):
-        self.aspecto = aspecto
-        self.puntuacionADar = puntuacionADar
-        self.posicionX = posicionX
-        self.posicionY = posicionY
+    def __init__(self, skin, posX, posY, scoreGiven):
+        self.skin = skin
+        self.scoreGiven = scoreGiven
+        self.posX = posX
+        self.posY = posY
 
     #Elige y posiciona al objeto en la matriz del Background 
-    def Respawn(self, bg):
+    def respawn(self, bg):
         newPosX, newPosY = random.randint(0, bg.height - 1), random.randint(0, bg.width - 1)
 
         #Comprueba si la posición esta vacia
-        while bg.IsEmpty(newPosX, newPosY) != True:
+        while bg.isEmpty(newPosX, newPosY) != True:
             newPosX, newPosY = random.randint(0, bg.height - 1), random.randint(0, bg.width - 1)
         
-        self.posicionX, self.posicionY = newPosX, newPosY
-        bg.mtx[newPosX][newPosY] = self.aspecto
+        self.posX, self.posY = newPosX, newPosY
+        bg.mtx[newPosX][newPosY] = self.skin
 
     #Cuando Snake toca al objeto es llamada
-    def IsEaten(self, bg, puntuacionTotal):
-        self.Respawn(bg)
-        return puntuacionTotal + self.puntuacionADar
+    @abstractmethod
+    def isEaten(self, bg, totalScore):
+        pass
 
 class ObjetoBueno(Objeto):
-    def __init__(self, aspecto,posicionX, posicionY, puntuacionADar = 5):
-        super().__init__(aspecto, posicionX, posicionY, puntuacionADar)
+    randomRanges = (0, 2)
 
+    def __init__(self, skin,posX, posY, scoreGiven = 5):
+        super().__init__(skin, posX, posY, scoreGiven)
+
+    def isEaten(self, bg, totalScore):
+        self.respawn(bg)
+        return totalScore + int(self.scoreGiven*random.randint(self.randomRanges[0], self.randomRanges[1]))
+    
 class ObjetoMalo(Objeto):
-    def __init__(self, aspecto, posicionX, posicionY, puntuacionADar = -5):
-        super().__init__(aspecto, posicionX, posicionY, puntuacionADar)
+    def __init__(self, skin, posX, posY, scoreGiven = -5):
+        super().__init__(skin, posX, posY, scoreGiven)
+
+    def isEaten(self, bg, totalScore):
+        self.respawn(bg)
+        return totalScore + self.scoreGiven
 #endregion
 
 #region Snake
 class Snake:
     lastPositions = []
-    def __init__(self, posicionX, posicionY, aspectoCabeza='🔶', aspectoCola='⬛', longitud=3, vidas = 3):
-        self.posicionX = posicionX
-        self.posicionY = posicionY
-        self.aspectoCabeza = aspectoCabeza
-        self.aspectoCola = aspectoCola
-        self.longitud = longitud
-        self.__vidas = vidas
+    def __init__(self, posX, posY, headSkin='🔶', tailSkin='⬛', length=3, lifes=6):
+        self.posX = posX
+        self.posY = posY
+        self.headSkin = headSkin
+        self.tailSkin = tailSkin
+        self.longitud = length
+        self.__lifes = lifes
         self.lastDirection = 0
 
     @property
-    def GetVidas(self):
-        return self.__vidas
+    def getLifes(self):
+        return self.__lifes
     
-    @GetVidas.setter
-    def SetVidas(self, nuevaVida):
-        self.__vidas = nuevaVida
-
+    @getLifes.setter
+    def setLifes(self, newLife):
+        self.__lifes = newLife
 #endregion
 
 #region Background
@@ -74,20 +83,19 @@ class Background:
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.PrintBackground()
+        self.printBackground()
 
-
-    def StartBackground(self):
+    def startBackground(self):
         self.mtx = [['⬜' for i in range(self.width)] for a in range(self.height)]
 
-    def PrintBackground(self):
+    def printBackground(self):
         for i in self.mtx:
             for a in i:
                 print(a, end='')
             print()
 
     #Devuelve si la posicion esta vacia
-    def IsEmpty(self, posX, posY):
+    def isEmpty(self, posX, posY):
         if self.mtx[posX][posY] == '⬜':
             return True
         return False
@@ -95,179 +103,190 @@ class Background:
 
 #region Game
 class Game:
-
-    def __init__(self, bg, snake, goodItem, badItem, puntuacionTotal = 0):
+    def __init__(self, bg, snake, goodItem, badItem, totalScore = 0):
         self.bg = bg
         self.snake = snake
         self.goodItem = goodItem
         self.badItem = badItem
-        self.puntuacionTotal = puntuacionTotal
+        self.totalScore = totalScore
+        self.gameStarted = False
 
     #El unico personaje que se mueve es el Snake, aqui solo accederá cuando esta colisione con algo
     #En función haya colisionado con qué, irá hacia un sitio u otro
-    def CheckColisions(self):
-            colorToCheck = self.bg.mtx[self.snake.posicionX][self.snake.posicionY]
+    def checkColisions(self):
+            colorToCheck = self.bg.mtx[self.snake.posX][self.snake.posY]
             if colorToCheck != '⬜':
                 if colorToCheck == '⬛':
-                    self.snake.SetVidas = self.snake.GetVidas - 1
+                    self.snake.setLifes = self.snake.getLifes - 1
                 elif colorToCheck == '🌞':
-                    self.puntuacionTotal = self.goodItem.IsEaten(self.bg, self.puntuacionTotal)
-                    self.snake.SetVidas = self.snake.GetVidas + 1
+                    self.totalScore = self.goodItem.isEaten(self.bg, self.totalScore)
+                    self.snake.setLifes = self.snake.getLifes + 1
                 elif colorToCheck == '🥦':
-                    self.puntuacionTotal = self.badItem.IsEaten(self.bg, self.puntuacionTotal)
-                    self.snake.SetVidas = self.snake.GetVidas - 1
+                    self.totalScore = self.badItem.isEaten(self.bg, self.totalScore)
+                    self.snake.setLifes = self.snake.getLifes - 1
 
     #Se llama antes de el juego para inicializar/reinicializar variables
-    def StartGame(self):  
+    def startGame(self):  
+        self.gameStarted = True
         for i in range(6):
             self.snake.lastPositions.append([4, 14 - i])
 
-        self.bg.StartBackground()
+        self.bg.startBackground()
         
-        self.bg.mtx[self.snake.posicionX][self.snake.posicionY] = self.snake.aspectoCabeza
+        self.bg.mtx[self.snake.posX][self.snake.posY] = self.snake.headSkin
         for i in self.snake.lastPositions:
-            self.bg.mtx[i[0]][i[1]] = self.snake.aspectoCola
+            self.bg.mtx[i[0]][i[1]] = self.snake.tailSkin
         
-        self.goodItem.Respawn(self.bg)
-        self.badItem.Respawn(self.bg)
+        self.goodItem.respawn(self.bg)
+        self.badItem.respawn(self.bg)
 
-        self.bg.PrintBackground()
+        self.bg.printBackground()
 
     #Bucle del juego
     def onGame(self):
-        tecla_presionada = False
+        keyPressed = False
         sameMove = False
-        while True:
-            if tecla_presionada:
+        while self.gameStarted:
+            if keyPressed:
                 #Restart
                 os.system('cls' if os.name == 'nt' else "printf '\033c'")
 
-                self.bg.StartBackground()
-                self.bg.mtx[self.goodItem.posicionX][self.goodItem.posicionY] = self.goodItem.aspecto
-                self.bg.mtx[self.badItem.posicionX][self.badItem.posicionY] = self.badItem.aspecto
+                self.bg.startBackground()
+                self.bg.mtx[self.goodItem.posX][self.goodItem.posY] = self.goodItem.skin
+                self.bg.mtx[self.badItem.posX][self.badItem.posY] = self.badItem.skin
                 
                 #Cola
 
                 if self.snake.lastPositions[0] and sameMove is False:
-                    self.snake.lastPositions.insert(0, [self.snake.posicionX, self.snake.posicionY])
+                    self.snake.lastPositions.insert(0, [self.snake.posX, self.snake.posY])
                     
-                    while len(self.snake.lastPositions) >= self.snake.GetVidas:
+                    while len(self.snake.lastPositions) >= self.snake.getLifes:
                         self.snake.lastPositions = self.snake.lastPositions[:-1]
 
                     for i in self.snake.lastPositions:
-                        self.bg.mtx[i[0]][i[1]] = self.snake.aspectoCola
+                        self.bg.mtx[i[0]][i[1]] = self.snake.tailSkin
 
                 #Movement
                 #LastDirection Tiene que no permitir en la direccion contraria a la que se ha avanzado
                 #Ej: si va hacia arriba, que no deje ir hacia abajo...
                 if keyboard.is_pressed('d'):
                     if self.snake.lastDirection != 1:
-                        if self.snake.posicionY + 1 < self.bg.width:
-                            self.snake.posicionY += 1
+                        if self.snake.posY + 1 < self.bg.width:
+                            self.snake.posY += 1
                             self.snake.lastDirection = 3
                             sameMove = False
                     else:
                         sameMove = True
                 elif keyboard.is_pressed('w'):
                     if self.snake.lastDirection != 2:
-                        if self.snake.posicionX > 0:
-                            self.snake.posicionX -= 1
+                        if self.snake.posX > 0:
+                            self.snake.posX -= 1
                             self.snake.lastDirection = 4
                             sameMove = False
                     else:
                         sameMove = True                        
                 elif keyboard.is_pressed('a'):
                     if  self.snake.lastDirection != 3:
-                        if self.snake.posicionY > 0:
-                            self.snake.posicionY -= 1
+                        if self.snake.posY > 0:
+                            self.snake.posY -= 1
                             self.snake.lastDirection = 1
                             sameMove = False
                     else:
                         sameMove = True
                 elif keyboard.is_pressed('s'):
                     if self.snake.lastDirection != 4:    
-                        if self.snake.posicionX + 1 < self.bg.height:
-                            self.snake.posicionX += 1
+                        if self.snake.posX + 1 < self.bg.height:
+                            self.snake.posX += 1
                             self.snake.lastDirection = 2
                             sameMove= False
                     else:
                         sameMove = True
                     
-                self.CheckColisions()
+                self.checkColisions()
 
                 for i in self.snake.lastPositions:
-                    self.bg.mtx[i[0]][i[1]] = self.snake.aspectoCola
-                self.bg.mtx[self.snake.posicionX][self.snake.posicionY] = self.snake.aspectoCabeza  
-                self.bg.PrintBackground()
-                print('puntuacion:', self.puntuacionTotal)
-                print('Vidas:', self.snake.GetVidas - 1)
+                    self.bg.mtx[i[0]][i[1]] = self.snake.tailSkin
+                self.bg.mtx[self.snake.posX][self.snake.posY] = self.snake.headSkin  
+                self.bg.printBackground()
+                print('puntuacion:', self.totalScore)
+                print('Vidas:', self.snake.getLifes - 1)
                 
-                if self.snake.GetVidas <= 1:
+                if self.snake.getLifes <= 1:
                     print('Game Over')
-                    user_name = input('Introduce tu nombre ')
+                    userName = input('Introduce tu nombre ')
+
+                    if userName == ' ':
+                        userName == 'lostName'
+
                     classification = Classification()
-                    classification.add_user_classification(user_name, self.puntuacionTotal)
-                    break
+                    classification.addUserClassification(userName, self.totalScore)
+                    self.gameStarted = False
                 
                 time.sleep(0.2)
                 
             if keyboard.is_pressed('d') or keyboard.is_pressed('w') or keyboard.is_pressed('a') or keyboard.is_pressed('s'):
-                tecla_presionada = True
+                keyPressed = True
             else:
-                tecla_presionada = False
+                keyPressed = False
                 time.sleep(0.2)
 #endregion
 
 #region OffGame
 class Classification:
-    def get_classification_from_txt(self):
+    def getClassificationFromTxt(self):
         classification = ''
         try:
-            with open('.\classification.txt', 'r') as f:
-                classification = f.read()
+            f = open('.\classification.txt', 'r')
+            classification = f.read()
         except FileNotFoundError:
             print('No se encuentra el archivo "classification.txt" en la ubicación actual.')   
         finally:
             f.close()
         return classification
     
-    def print_classification(self):   
-        print(self.get_classification_from_txt())
+    def printClassification(self):   
+        print(self.getClassificationFromTxt())
 
-    def map_classification(self):
-        readed_classification = self.get_classification_from_txt()
+    def mapClassification(self):
+        readed_classification = self.getClassificationFromTxt()
         rows_txt = readed_classification.split("\n")
         rows_txt.pop()
         map_classification = list(
             map(lambda row: {key: value for key, value in (item.split(': ') for item in row.split(', '))},rows_txt))
         return map_classification
 
-    def get_higher_punctuations(self):
-        map_classification = self.map_classification()
-        higher_punctuations = list(filter(lambda x: int(x['puntuacion']) >= 30, map_classification))
-        print(f'puntuacion más alta de 30: {higher_punctuations}')
+    def getHigherScores(self):
+        mapClassification = self.mapClassification()
+        higherScores = list(filter(lambda x: int(x['puntuacion']) >= 30, mapClassification))
 
-    def calculate_mean_punctuations(self):
-        map_classification = self.map_classification()
+        for i in higherScores:
+            print(i['nombre'], '-', i['puntuacion'])
+
+    def calculateMeanPunctuations(self):
+        map_classification = self.mapClassification()
         sum_punctuations = reduce(lambda x, y: x + int(y['puntuacion']), map_classification, 0)
         length_punctuations = len(map_classification)
         mean_punctuations = int(sum_punctuations) / int(length_punctuations)
         print(f'Media de las puntuaciones: {mean_punctuations:.2f}')
 
-    def get_users(self):
-        map_classification = self.map_classification()
-        users = list(map(lambda x: x['nombre'], map_classification))
-        unique_users_names = set(users)
-        print(f'Lista de jugadores: {unique_users_names}')
+    def getUsers(self):
+        mapClassification = self.mapClassification()
+        users = list(map(lambda x: x['nombre'], mapClassification))
+        uniqueUsernames = set(users)
 
-    def add_user_classification(self, name, punctuation):
-        date_time = datetime.datetime.now()
-        date_time_formated = date_time.strftime('%Y-%m-%d %H:%M:%S')
-        user_entry_classification = f'fecha: {date_time_formated}, nombre: {name}, puntuacion: {punctuation}\n'
+        
+        print('Lista de jugadores: ',)
+        for i in uniqueUsernames:
+            print(i)
+
+    def addUserClassification(self, name, punctuation):
+        dateTime = datetime.datetime.now()
+        dateTimeFormated = dateTime.strftime('%Y-%m-%d %H:%M:%S')
+        userEntryClassification = f'fecha: {dateTimeFormated}, nombre: {name}, puntuacion: {punctuation}\n'
         try:
             with open('.\classification.txt', 'a') as f:
-                f.write(user_entry_classification)
-                print(f'Entrada agregada: {user_entry_classification}')
+                f.write(userEntryClassification)
+                print(f'Entrada agregada: {userEntryClassification}')
         except FileNotFoundError:
             print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
         finally:
@@ -277,7 +296,7 @@ class Menu:
     def __init__(self):
         os.system('cls' if os.name == 'nt' else "printf '\033c'")
         
-    def print_menu(self):
+    def printMenu(self):
         print('\nMenú:')
         print('1. Jugar partida')
         print('2. Ver clasificación')
@@ -286,27 +305,27 @@ class Menu:
         print('5. Mostrar lista jugadores')
         print('6. Salir')
     
-    def init_menu(self):
+    def initMenu(self):
         while True:
-            self.print_menu()
+            self.printMenu()
             opcion = input('Seleccione una operación (1/2/3/4/5/6): ')
             classification = Classification()
 
             if opcion == '1':
                 g = Game(Background(20, 10), Snake(4, 15), ObjetoBueno('🌞', random.randint(0, 9), random.randint(0, 19)), ObjetoMalo('🥦', random.randint(0, 9), random.randint(0, 19)))
-                g.StartGame()
+                g.startGame()
                 g.onGame()
             elif opcion == '2':
-                classification.print_classification()
+                classification.printClassification()
 
             elif opcion == '3':
-                classification.get_higher_punctuations()
+                classification.getHigherScores()
 
             elif opcion == '4':
-                classification.calculate_mean_punctuations()
+                classification.calculateMeanPunctuations()
 
             elif opcion == '5':
-                classification.get_users()
+                classification.getUsers()
 
             elif opcion == '6':
                 break
@@ -316,4 +335,4 @@ class Menu:
 #endregion
 
 menu = Menu()
-menu.init_menu()
+menu.initMenu()
