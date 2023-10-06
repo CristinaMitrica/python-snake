@@ -156,7 +156,6 @@ class Game:
                 self.bg.mtx[self.badItem.posX][self.badItem.posY] = self.badItem.skin
                 
                 #Cola
-
                 if self.snake.lastPositions[0] and sameMove is False:
                     self.snake.lastPositions.insert(0, [self.snake.posX, self.snake.posY])
                     
@@ -211,8 +210,11 @@ class Game:
                 print('puntuacion:', self.totalScore)
                 print('Vidas:', self.snake.getLifes - 1)
                 
-                if self.snake.getLifes <= 1:
-                    print('Game Over')
+                if self.snake.getLifes <= 1 or self.totalScore >= 100:
+                    if self.snake.getLifes <= 1:
+                        print('Game Over 💀')
+                    else:
+                        print('You Win 🎉')
                     userName = input('Introduce tu nombre ')
 
                     if userName == ' ':
@@ -271,10 +273,10 @@ class Classification:
 
     def getHigherScores(self):
         mapClassification = self.mapClassification()
-        higherScores = list(filter(lambda x: int(x['puntuacion']) >= 30, mapClassification))
+        higherScores = list(filter(lambda x: int(x['puntuacion']) >= 100, mapClassification))
 
         for i in higherScores:
-            print(i['nombre'], '-', i['puntuacion'])
+            print(f'{i["nombre"]} - {i["puntuacion"]}')
 
     def calculateMeanPunctuations(self):
         map_classification = self.mapClassification()
@@ -298,18 +300,20 @@ class Menu:
         os.system('cls' if os.name == 'nt' else "printf '\033c'")
         
     def printMenu(self):
+        print('\nBienvenido al juego del Snake:')
         print('\nMenú:')
         print('1. Jugar partida')
         print('2. Ver clasificación')
-        print('3. Mostrar jugadores puntuacion superior a 30')
+        print('3. Mostrar jugadores puntuacion superior a 100')
         print('4. Mostrar media puntos todos los jugadores')
         print('5. Mostrar lista jugadores')
-        print('6. Salir')
+        print('6. Instrucciones del juego')
+        print('7. Salir')
     
     def initMenu(self):
         while True:
             self.printMenu()
-            opcion = input('Seleccione una operación (1/2/3/4/5/6): ')
+            opcion = input('\nSeleccione una operación (1/2/3/4/5/6/7): ')
             classification = Classification()
 
             if opcion == '1':
@@ -329,6 +333,18 @@ class Menu:
                 classification.getUsers()
 
             elif opcion == '6':
+                print(
+                    '\nInstrucciones del juego:\n'
+                    '- El juego consiste en mover la serpiente con las teclas ''a'', ''w'', ''s'' y ''d''.\n'
+                    '- Al comer un sol, se aumenta la vida y la puntuación de 5 a 10 puntos aleatoriamente.\n'
+                    '- Al comer un brócoli, se reduce la vida y la puntuación de 5 a 10 puntos aleatoriamente, y la cola de la serpiente disminuye.\n'
+                    '- Al chocar contra las paredes, pierdes 1 vida = pierdes 1 punto de la cola.\n'
+                    '- Si te cruzas con la cabeza encima de la cola, pierdes 1 vida = pierdes 1 punto de la cola.\n'
+                    '💀 Pierdes al quedarte sin vidas.\n'
+                    '🎉 Ganas al superar los 100 puntos.\n'
+                )
+
+            elif opcion == '7':
                 break
 
             else:

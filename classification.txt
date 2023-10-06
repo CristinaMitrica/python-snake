@@ -10,3 +10,7 @@ fecha: 2023-10-06 19:38:00, nombre: Cristina, puntuacion: 60
 fecha: 2023-10-06 19:41:40, nombre: test, puntuacion: -5
 fecha: 2023-10-06 19:41:56, nombre: Adri, puntuacion: 0
 fecha: 2023-10-06 19:45:58, nombre: Test pre entrega =), puntuacion: 55
+fecha: 2023-10-06 19:52:57, nombre: test, puntuacion: -10
+fecha: 2023-10-06 20:44:09, nombre: test, puntuacion: -10
+fecha: 2023-10-06 20:52:30, nombre: Game Over, puntuacion: 0
+fecha: 2023-10-06 20:55:24, nombre: You Win, puntuacion: 105
