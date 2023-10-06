@@ -235,33 +235,30 @@ class Game:
 
 #region OffGame
 class Classification:
-    
+    def getClassificationFromTxt(self):
+        classification = ''
+        try:
+            with open('./classification.txt', 'r') as f:
+                classification = f.read()
+        except FileNotFoundError:
+            print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
+            print('Para mostrar la clasificación, debes jugar al menos 1 vez.')
+        return classification
+
+    def printClassification(self):   
+        print(self.getClassificationFromTxt())
+   
+   
     def addUserClassification(self, name, punctuation):
         dateTime = datetime.datetime.now()
         dateTimeFormated = dateTime.strftime('%Y-%m-%d %H:%M:%S')
         userEntryClassification = f'fecha: {dateTimeFormated}, nombre: {name}, puntuacion: {punctuation}\n'
         try:
-            f = open('.\classification.txt', 'a')
-            f.write(userEntryClassification)
+            with open('./classification.txt', 'a') as f:
+                f.write(userEntryClassification)
             print(f'Entrada agregada: {userEntryClassification}')
         except FileNotFoundError:
             print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
-        finally:
-            f.close()
-
-    def getClassificationFromTxt(self):
-        classification = ''
-        try:
-            f = open('.\classification.txt', 'r')
-            classification = f.read()
-        except FileNotFoundError:
-            print('No se encuentra el archivo "classification.txt" en la ubicación actual.')   
-        finally:
-            f.close()
-        return classification
-    
-    def printClassification(self):   
-        print(self.getClassificationFromTxt())
 
     def mapClassification(self):
         readed_classification = self.getClassificationFromTxt()
@@ -281,7 +278,7 @@ class Classification:
     def calculateMeanPunctuations(self):
         map_classification = self.mapClassification()
         sum_punctuations = reduce(lambda x, y: x + int(y['puntuacion']), map_classification, 0)
-        length_punctuations = len(map_classification)
+        length_punctuations = len(map_classification) if len(map_classification) > 0 else 1
         mean_punctuations = int(sum_punctuations) / int(length_punctuations)
         print(f'Media de las puntuaciones: {mean_punctuations:.2f}')
 
@@ -335,9 +332,10 @@ class Menu:
             elif opcion == '6':
                 print(
                     '\nInstrucciones del juego:\n'
-                    '- El juego consiste en mover la serpiente con las teclas ''a'', ''w'', ''s'' y ''d''.\n'
-                    '- Al comer un sol, se aumenta la vida y la puntuación de 5 a 10 puntos aleatoriamente.\n'
-                    '- Al comer un brócoli, se reduce la vida y la puntuación de 5 a 10 puntos aleatoriamente, y la cola de la serpiente disminuye.\n'
+                    '🐍 El juego consiste en mover la serpiente con las teclas ''a'', ''w'', ''s'' y ''d''.\n'
+                    '💗 Empiezas con 5 vidas.\n'
+                    '- Al comer un sol, se aumenta la vida 1 punto y la puntuación de 0 a 10 puntos aleatoriamente.\n'
+                    '- Al comer un brócoli, se reduce la vida 1 punto y la puntuación de 5 a 10 puntos aleatoriamente, y la cola de la serpiente disminuye.\n'
                     '- Al chocar contra las paredes, pierdes 1 vida = pierdes 1 punto de la cola.\n'
                     '- Si te cruzas con la cabeza encima de la cola, pierdes 1 vida = pierdes 1 punto de la cola.\n'
                     '💀 Pierdes al quedarte sin vidas.\n'
