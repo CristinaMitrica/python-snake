@@ -136,56 +136,75 @@ class Game:
     #Bucle del juego
     def onGame(self):
         tecla_presionada = False
+        sameMove = False
         while True:
             if tecla_presionada:
                 #Restart
-                os.system('cls' if os.name == 'nt' else 'clear')
+                os.system('cls' if os.name == 'nt' else "printf '\033c'")
+
                 self.bg.StartBackground()
                 self.bg.mtx[self.goodItem.posicionX][self.goodItem.posicionY] = self.goodItem.aspecto
                 self.bg.mtx[self.badItem.posicionX][self.badItem.posicionY] = self.badItem.aspecto
                 
                 #Cola
-                self.snake.lastPositions.insert(0, [self.snake.posicionX, self.snake.posicionY])
-                
-                while len(self.snake.lastPositions) >= self.snake.GetVidas:
-                    self.snake.lastPositions = self.snake.lastPositions[:-1]
 
-                for i in self.snake.lastPositions:
-                    self.bg.mtx[i[0]][i[1]] = self.snake.aspectoCola
+                if self.snake.lastPositions[0] and sameMove is False:
+                    self.snake.lastPositions.insert(0, [self.snake.posicionX, self.snake.posicionY])
+                    
+                    while len(self.snake.lastPositions) >= self.snake.GetVidas:
+                        self.snake.lastPositions = self.snake.lastPositions[:-1]
+
+                    for i in self.snake.lastPositions:
+                        self.bg.mtx[i[0]][i[1]] = self.snake.aspectoCola
 
                 #Movement
                 #LastDirection Tiene que no permitir en la direccion contraria a la que se ha avanzado
                 #Ej: si va hacia arriba, que no deje ir hacia abajo...
-                if keyboard.is_pressed('d') and self.snake.lastDirection != 1:
-                    if self.snake.posicionY + 1 < self.bg.width:
-                        self.snake.posicionY += 1
-                        self.snake.lastDirection = 3
-                elif keyboard.is_pressed('w') and self.snake.lastDirection != 2:
-                    if self.snake.posicionX > 0:
-                        self.snake.posicionX -= 1
-                        self.snake.lastDirection = 4
-                elif keyboard.is_pressed('a') and self.snake.lastDirection != 3:
-                    if self.snake.posicionY > 0:
-                        self.snake.posicionY -= 1
-                        self.snake.lastDirection = 1
-                elif keyboard.is_pressed('s') and self.snake.lastDirection != 4:
-                    if self.snake.posicionX + 1 < self.bg.height:
-                        self.snake.posicionX += 1
-                        self.snake.lastDirection = 2
+                if keyboard.is_pressed('d'):
+                    if self.snake.lastDirection != 1:
+                        if self.snake.posicionY + 1 < self.bg.width:
+                            self.snake.posicionY += 1
+                            self.snake.lastDirection = 3
+                            sameMove = False
+                    else:
+                        sameMove = True
+                elif keyboard.is_pressed('w'):
+                    if self.snake.lastDirection != 2:
+                        if self.snake.posicionX > 0:
+                            self.snake.posicionX -= 1
+                            self.snake.lastDirection = 4
+                            sameMove = False
+                    else:
+                        sameMove = True                        
+                elif keyboard.is_pressed('a'):
+                    if  self.snake.lastDirection != 3:
+                        if self.snake.posicionY > 0:
+                            self.snake.posicionY -= 1
+                            self.snake.lastDirection = 1
+                            sameMove = False
+                    else:
+                        sameMove = True
+                elif keyboard.is_pressed('s'):
+                    if self.snake.lastDirection != 4:    
+                        if self.snake.posicionX + 1 < self.bg.height:
+                            self.snake.posicionX += 1
+                            self.snake.lastDirection = 2
+                            sameMove= False
+                    else:
+                        sameMove = True
                     
                 self.CheckColisions()
 
-                self.bg.mtx[self.snake.posicionX][self.snake.posicionY] = self.snake.aspectoCabeza            
                 for i in self.snake.lastPositions:
                     self.bg.mtx[i[0]][i[1]] = self.snake.aspectoCola
-
+                self.bg.mtx[self.snake.posicionX][self.snake.posicionY] = self.snake.aspectoCabeza  
                 self.bg.PrintBackground()
-                print('Puntuación:', self.puntuacionTotal)
-                print('Vidas:', self.snake.GetVidas)
+                print('puntuacion:', self.puntuacionTotal)
+                print('Vidas:', self.snake.GetVidas - 1)
                 
-                if self.snake.GetVidas <= 0:
+                if self.snake.GetVidas <= 1:
                     print('Game Over')
-                    user_name = input('Introduce tu nombre')
+                    user_name = input('Introduce tu nombre ')
                     classification = Classification()
                     classification.add_user_classification(user_name, self.puntuacionTotal)
                     break
@@ -199,6 +218,7 @@ class Game:
                 time.sleep(0.2)
 #endregion
 
+#region OffGame
 class Classification:
     def get_classification_from_txt(self):
         classification = ''
@@ -224,12 +244,12 @@ class Classification:
 
     def get_higher_punctuations(self):
         map_classification = self.map_classification()
-        higher_punctuations = list(filter(lambda x: int(x['puntuación']) >= 30, map_classification))
-        print(f'Puntuación más alta de 30: {higher_punctuations}')
+        higher_punctuations = list(filter(lambda x: int(x['puntuacion']) >= 30, map_classification))
+        print(f'puntuacion más alta de 30: {higher_punctuations}')
 
     def calculate_mean_punctuations(self):
         map_classification = self.map_classification()
-        sum_punctuations = reduce(lambda x, y: x + int(y['puntuación']), map_classification, 0)
+        sum_punctuations = reduce(lambda x, y: x + int(y['puntuacion']), map_classification, 0)
         length_punctuations = len(map_classification)
         mean_punctuations = int(sum_punctuations) / int(length_punctuations)
         print(f'Media de las puntuaciones: {mean_punctuations:.2f}')
@@ -243,7 +263,7 @@ class Classification:
     def add_user_classification(self, name, punctuation):
         date_time = datetime.datetime.now()
         date_time_formated = date_time.strftime('%Y-%m-%d %H:%M:%S')
-        user_entry_classification = f'fecha: {date_time_formated}, nombre: {name}, puntuación: {punctuation}\n'
+        user_entry_classification = f'fecha: {date_time_formated}, nombre: {name}, puntuacion: {punctuation}\n'
         try:
             with open('.\classification.txt', 'a') as f:
                 f.write(user_entry_classification)
@@ -255,13 +275,13 @@ class Classification:
        
 class Menu: 
     def __init__(self):
-        pass
-
+        os.system('cls' if os.name == 'nt' else "printf '\033c'")
+        
     def print_menu(self):
         print('\nMenú:')
         print('1. Jugar partida')
         print('2. Ver clasificación')
-        print('3. Mostrar jugadores puntuación superior a 30')
+        print('3. Mostrar jugadores puntuacion superior a 30')
         print('4. Mostrar media puntos todos los jugadores')
         print('5. Mostrar lista jugadores')
         print('6. Salir')
@@ -293,6 +313,7 @@ class Menu:
 
             else:
                 input('Opción no existe, introduce una opción correcta: ')
+#endregion
 
 menu = Menu()
 menu.init_menu()
