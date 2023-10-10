@@ -262,7 +262,7 @@ class Classification:
 
     def mapClassification(self):
         readed_classification = self.getClassificationFromTxt()
-        rows_txt = readed_classification.split("\n")
+        rows_txt = readed_classification.split('\n')
         rows_txt.pop()
         map_classification = list(
             map(lambda row: {key: value for key, value in (item.split(': ') for item in row.split(', '))},rows_txt))
@@ -287,7 +287,6 @@ class Classification:
         users = list(map(lambda x: x['nombre'], mapClassification))
         uniqueUsernames = set(users)
 
-        
         print('Lista de jugadores: ',)
         for i in uniqueUsernames:
             print(i)
