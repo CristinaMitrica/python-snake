@@ -1,3 +1,33 @@
+import sqlite3
+conn = sqlite3.connect("mi_base_de_datos.db")
+cursor = conn.cursor()
+cursor.execute('DROP TABLE classifications')
+
+# Crear una tabla (si no existe)
+cursor.execute('''CREATE TABLE IF NOT EXISTS classifications (
+    id INTEGER PRIMARY KEY,
+    date TEXT,
+    name TEXT,
+    punctuation INTEGER
+)''')
+
+
+
+# Confirmar los cambios en la base de datos
+conn.commit()
+
+# Insertar datos en la tabla
+data_to_insert = [
+    ('2023-10-10 18:08:36', 'Juan Pérez', 30),
+    ('2023-10-08 18:08:36', 'Maria Pérez', 50),
+    ('2023-10-09 18:08:36', 'Miguel Pérez', 120)
+]
+cursor.executemany("INSERT INTO classifications (date, name, punctuation) VALUES (?, ?, ?)", data_to_insert)
+# Confirmar los cambios
+conn.commit()
+
+
+
 
 #Versión Nueva =)
 #snake+ premium enterprise
@@ -235,6 +265,13 @@ class Game:
 
 #region OffGame
 class Classification:
+    def getClassifications(self): 
+        # Consultar datos
+        cursor.execute("SELECT * FROM classifications")
+        # Recuperar los resultados
+        classifications = cursor.fetchall()
+        return classifications
+
     def getClassificationFromTxt(self):
         classification = ''
         try:
@@ -245,9 +282,11 @@ class Classification:
             print('Para mostrar la clasificación, debes jugar al menos 1 vez.')
         return classification
 
-    def printClassification(self):   
-        print(self.getClassificationFromTxt())
-   
+    def printClassification(self):  
+        classifications = self.mapClassifications() 
+        for classification in classifications:
+            print(f'id: {classification["id"]}, fecha: {classification["date"]}, nombre: {classification["name"]}, puntuacion: {classification["punctuation"]}')
+  
    
     def addUserClassification(self, name, punctuation):
         dateTime = datetime.datetime.now()
@@ -260,31 +299,28 @@ class Classification:
         except FileNotFoundError:
             print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
 
-    def mapClassification(self):
-        readed_classification = self.getClassificationFromTxt()
-        rows_txt = readed_classification.split('\n')
-        rows_txt.pop()
-        map_classification = list(
-            map(lambda row: {key: value for key, value in (item.split(': ') for item in row.split(', '))},rows_txt))
-        return map_classification
+    def mapClassifications(self):
+        classifications = self.getClassifications()
+        formatted_classifications = list(map(lambda x: {'id': x[0], 'date': x[1], 'name': x[2], 'punctuation': x[3]}, classifications))
+        return formatted_classifications
 
     def getHigherScores(self):
-        mapClassification = self.mapClassification()
-        higherScores = list(filter(lambda x: int(x['puntuacion']) >= 100, mapClassification))
+        mapClassification = self.mapClassifications()
+        higherScores = list(filter(lambda x: int(x['punctuation']) >= 100, mapClassification))
 
         for i in higherScores:
-            print(f'{i["nombre"]} - {i["puntuacion"]}')
+            print(f'{i["name"]} - {i["punctuation"]}')
 
     def calculateMeanPunctuations(self):
-        map_classification = self.mapClassification()
-        sum_punctuations = reduce(lambda x, y: x + int(y['puntuacion']), map_classification, 0)
+        map_classification = self.mapClassifications()
+        sum_punctuations = reduce(lambda x, y: x + int(y['punctuation']), map_classification, 0)
         length_punctuations = len(map_classification) if len(map_classification) > 0 else 1
         mean_punctuations = int(sum_punctuations) / int(length_punctuations)
         print(f'Media de las puntuaciones: {mean_punctuations:.2f}')
 
     def getUsers(self):
-        mapClassification = self.mapClassification()
-        users = list(map(lambda x: x['nombre'], mapClassification))
+        mapClassification = self.mapClassifications()
+        users = list(map(lambda x: x['name'], mapClassification))
         uniqueUsernames = set(users)
 
         print('Lista de jugadores: ',)
@@ -311,7 +347,6 @@ class Menu:
             self.printMenu()
             opcion = input('\nSeleccione una operación (1/2/3/4/5/6/7): ')
             classification = Classification()
-
             if opcion == '1':
                 g = Game(Background(20, 10), Snake(4, 15), ObjetoBueno('🌞', random.randint(0, 9), random.randint(0, 19)), ObjetoMalo('🥦', random.randint(0, 9), random.randint(0, 19)))
                 g.startGame()
@@ -342,6 +377,7 @@ class Menu:
                 )
 
             elif opcion == '7':
+                conn.close()
                 break
 
             else:
