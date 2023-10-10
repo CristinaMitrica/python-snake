@@ -1,7 +1,9 @@
+#snake+ premium enterprise
+
 import sqlite3
 conn = sqlite3.connect("mi_base_de_datos.db")
 cursor = conn.cursor()
-cursor.execute('DROP TABLE classifications')
+# cursor.execute('DROP TABLE classifications')
 
 # Crear una tabla (si no existe)
 cursor.execute('''CREATE TABLE IF NOT EXISTS classifications (
@@ -15,22 +17,6 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS classifications (
 
 # Confirmar los cambios en la base de datos
 conn.commit()
-
-# Insertar datos en la tabla
-data_to_insert = [
-    ('2023-10-10 18:08:36', 'Juan Pérez', 30),
-    ('2023-10-08 18:08:36', 'Maria Pérez', 50),
-    ('2023-10-09 18:08:36', 'Miguel Pérez', 120)
-]
-cursor.executemany("INSERT INTO classifications (date, name, punctuation) VALUES (?, ?, ?)", data_to_insert)
-# Confirmar los cambios
-conn.commit()
-
-
-
-
-#Versión Nueva =)
-#snake+ premium enterprise
 
 #region Librerias
 from abc import ABC, abstractmethod
@@ -248,7 +234,7 @@ class Game:
                     userName = input('Introduce tu nombre ')
 
                     if userName == ' ':
-                        userName == 'lostName'
+                        userName == 'noName'
 
                     classification = Classification()
                     classification.addUserClassification(userName, self.totalScore)
@@ -272,33 +258,19 @@ class Classification:
         classifications = cursor.fetchall()
         return classifications
 
-    def getClassificationFromTxt(self):
-        classification = ''
-        try:
-            with open('./classification.txt', 'r') as f:
-                classification = f.read()
-        except FileNotFoundError:
-            print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
-            print('Para mostrar la clasificación, debes jugar al menos 1 vez.')
-        return classification
-
     def printClassification(self):  
         classifications = self.mapClassifications() 
         for classification in classifications:
             print(f'id: {classification["id"]}, fecha: {classification["date"]}, nombre: {classification["name"]}, puntuacion: {classification["punctuation"]}')
   
-   
     def addUserClassification(self, name, punctuation):
         dateTime = datetime.datetime.now()
         dateTimeFormated = dateTime.strftime('%Y-%m-%d %H:%M:%S')
-        userEntryClassification = f'fecha: {dateTimeFormated}, nombre: {name}, puntuacion: {punctuation}\n'
-        try:
-            with open('./classification.txt', 'a') as f:
-                f.write(userEntryClassification)
-            print(f'Entrada agregada: {userEntryClassification}')
-        except FileNotFoundError:
-            print('No se encuentra el archivo "classification.txt" en la ubicación actual.')
 
+        cursor.execute("INSERT INTO classifications (date, name, punctuation) VALUES (?, ?, ?)", (dateTimeFormated, name, punctuation))
+        # Confirmar los cambios
+        conn.commit()
+        
     def mapClassifications(self):
         classifications = self.getClassifications()
         formatted_classifications = list(map(lambda x: {'id': x[0], 'date': x[1], 'name': x[2], 'punctuation': x[3]}, classifications))
