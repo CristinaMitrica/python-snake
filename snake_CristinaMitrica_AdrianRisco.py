@@ -1,9 +1,8 @@
 #snake+ premium enterprise
 
 import sqlite3
-conn = sqlite3.connect("mi_base_de_datos.db")
+conn = sqlite3.connect("snake.db")
 cursor = conn.cursor()
-# cursor.execute('DROP TABLE classifications')
 
 # Crear una tabla (si no existe)
 cursor.execute('''CREATE TABLE IF NOT EXISTS classifications (
@@ -12,8 +11,6 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS classifications (
     name TEXT,
     punctuation INTEGER
 )''')
-
-
 
 # Confirmar los cambios en la base de datos
 conn.commit()
